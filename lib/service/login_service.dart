@@ -1,11 +1,8 @@
-// Package imports:
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zego_call/core/common/common.dart';
+import 'package:zego_call/core/model/user_model.dart';
 import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
 import 'package:zego_uikit_signaling_plugin/zego_uikit_signaling_plugin.dart';
-
-// Project imports:
-import 'common.dart';
-import 'constants.dart';
 
 ZegoUIKitPrebuiltCallController? callController;
 

@@ -1,14 +1,11 @@
-// Flutter imports:
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
-// Package imports:
 import 'package:flutter_styled_toast/flutter_styled_toast.dart';
-import 'package:zego_uikit_prebuilt_call/zego_uikit_prebuilt_call.dart';
-
-// Project imports:
-import 'constants.dart';
-import 'login_service.dart';
+import 'package:zego_call/core/model/user_model.dart';
+import 'package:zego_call/core/routers/routers.dart';
+import 'package:zego_call/widgets/home/invite_id_form_field.dart';
+import 'package:zego_call/widgets/home/send_call_button.dart';
+import '../../service/login_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -19,9 +16,9 @@ class HomePage extends StatefulWidget {
 
 class HomePageState extends State<HomePage> {
   final TextEditingController singleInviteeUserIDTextCtrl =
-  TextEditingController();
+      TextEditingController();
   final TextEditingController groupInviteeUserIDsTextCtrl =
-  TextEditingController();
+      TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +77,6 @@ class HomePageState extends State<HomePage> {
   }
 
   Widget userListView() {
-
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 100),
       child: ListView.builder(
@@ -90,11 +86,11 @@ class HomePageState extends State<HomePage> {
         itemBuilder: (context, index) {
           late TextEditingController inviteeUsersIDTextCtrl;
           late List<Widget> userInfo;
-           if (1 == index) {
+          if (1 == index) {
             inviteeUsersIDTextCtrl = groupInviteeUserIDsTextCtrl;
             userInfo = [
               const Text('group name ('),
-              inviteeIDFormField(
+              InviteIDFormField(
                 textCtrl: inviteeUsersIDTextCtrl,
                 formatters: [
                   FilteringTextInputFormatter.allow(RegExp('[0-9,]')),
@@ -104,22 +100,21 @@ class HomePageState extends State<HomePage> {
               ),
               const Text(')'),
             ];
-          } else{
-               inviteeUsersIDTextCtrl = singleInviteeUserIDTextCtrl;
-               userInfo = [
-                 const Text('invitee name ('),
-                 inviteeIDFormField(
-                   textCtrl: inviteeUsersIDTextCtrl,
-                   formatters: [
-                     FilteringTextInputFormatter.allow(RegExp('[0-9,]')),
-                   ],
-                   labelText: 'invitee ID',
-                   hintText: 'plz enter invitee ID',
-                 ),
-                 const Text(')'),
-               ];
-
-           }
+          } else {
+            inviteeUsersIDTextCtrl = singleInviteeUserIDTextCtrl;
+            userInfo = [
+              const Text('invitee name ('),
+              InviteIDFormField(
+                textCtrl: inviteeUsersIDTextCtrl,
+                formatters: [
+                  FilteringTextInputFormatter.allow(RegExp('[0-9,]')),
+                ],
+                labelText: 'invitee ID',
+                hintText: 'plz enter invitee ID',
+              ),
+              const Text(')'),
+            ];
+          }
 
           return Column(
             children: [
@@ -128,12 +123,12 @@ class HomePageState extends State<HomePage> {
                   const SizedBox(width: 20),
                   ...userInfo,
                   Expanded(child: Container()),
-                  sendCallButton(
+                  SendCallButton(
                     isVideoCall: false,
                     inviteeUsersIDTextCtrl: inviteeUsersIDTextCtrl,
                     onCallFinished: onSendCallInvitationFinished,
                   ),
-                  sendCallButton(
+                  SendCallButton(
                     isVideoCall: true,
                     inviteeUsersIDTextCtrl: inviteeUsersIDTextCtrl,
                     onCallFinished: onSendCallInvitationFinished,
@@ -153,10 +148,10 @@ class HomePageState extends State<HomePage> {
   }
 
   void onSendCallInvitationFinished(
-      String code,
-      String message,
-      List<String> errorInvitees,
-      ) {
+    String code,
+    String message,
+    List<String> errorInvitees,
+  ) {
     if (errorInvitees.isNotEmpty) {
       var userIDs = '';
       for (var index = 0; index < errorInvitees.length; index++) {
@@ -191,71 +186,6 @@ class HomePageState extends State<HomePage> {
   }
 }
 
-Widget inviteeIDFormField({
-  required TextEditingController textCtrl,
-  List<TextInputFormatter>? formatters,
-  String hintText = '',
-  String labelText = '',
-}) {
-  const textStyle = TextStyle(fontSize: 12.0);
-  return Expanded(
-    flex: 100,
-    child: SizedBox(
-      height: 30,
-      child: TextFormField(
-        style: textStyle,
-        controller: textCtrl,
-        inputFormatters: formatters,
-        decoration: InputDecoration(
-          isDense: true,
-          hintText: hintText,
-          hintStyle: textStyle,
-          labelText: labelText,
-          labelStyle: textStyle,
-          border: const OutlineInputBorder(),
-        ),
-      ),
-    ),
-  );
-}
 
-Widget sendCallButton({
-  required bool isVideoCall,
-  required TextEditingController inviteeUsersIDTextCtrl,
-  void Function(String code, String message, List<String>)? onCallFinished,
-}) {
-  return ValueListenableBuilder<TextEditingValue>(
-    valueListenable: inviteeUsersIDTextCtrl,
-    builder: (context, inviteeUserID, _) {
-      final invitees =
-      getInvitesFromTextCtrl(inviteeUsersIDTextCtrl.text.trim());
 
-      return ZegoSendCallInvitationButton(
-        isVideoCall: isVideoCall,
-        invitees: invitees,
-        resourceID: 'zego_data',
-        iconSize: const Size(40, 40),
-        buttonSize: const Size(50, 50),
-        onPressed: onCallFinished,
-      );
-    },
-  );
-}
 
-List<ZegoUIKitUser> getInvitesFromTextCtrl(String textCtrlText) {
-  final invitees = <ZegoUIKitUser>[];
-
-  final inviteeIDs = textCtrlText.trim().replaceAll('，', '');
-  inviteeIDs.split(',').forEach((inviteeUserID) {
-    if (inviteeUserID.isEmpty) {
-      return;
-    }
-
-    invitees.add(ZegoUIKitUser(
-      id: inviteeUserID,
-      name: 'user_$inviteeUserID',
-    ));
-  });
-
-  return invitees;
-}
